@@ -98,6 +98,41 @@ This will:
 
 ---
 
+## CSV datasets
+
+Some datasets ship as a single table with one sentence pair per row instead of
+two `.src`/`.tgt` files. `preprocess.py` reads those directly:
+
+```bash
+PYTHONPATH=backend python backend/scripts/preprocess.py \
+  --csv languages/english-kiswahili/dataset.csv \
+  --output data/processed/english-kiswahili/
+```
+
+### CSV rules
+
+1. **Header row required.** The script reads column names from it.
+2. **Source column must be named `source`, target column `target`** — or tell
+   the script which columns to use:
+   `--source-column english --target-column kiswahili`.
+3. **UTF-8 encoding.** Same as the text files.
+4. **One pair per row.** Rows with an empty cell are skipped.
+5. **Extra columns are fine** and ignored, so provenance columns such as
+   `id`, `source_corpus` or `source_url` are welcome.
+
+### Example
+
+```csv
+id,source,target,source_corpus,source_url
+1,Are you sure?,"Je, una uhakika?",Tatoeba,https://tatoeba.org/en/sentences/1326
+2,You wanted to tell me about freedom?,Ulitaka kunieleza kuhusu uhuru?,Tatoeba,https://tatoeba.org/en/sentences/1410
+```
+
+Quote any cell that contains a comma, and use `--delimiter "\t"` for
+tab-separated files.
+
+---
+
 ## Privacy note
 
 Please do not commit personal or private data to this repository.

@@ -15,10 +15,12 @@ translated by Tatoeba contributors, many of them native Kiswahili speakers.
 > Tatoeba sentence data by Tatoeba contributors, licensed under
 > CC BY 2.0 FR. <https://tatoeba.org>
 
-The `source_url` column in `dataset.csv` points to the English sentence page on
-tatoeba.org for every row, so any pair can be traced back to its original
-contributors and verified in context. Please keep that column (or an equivalent
-credit) if you redistribute this data or a subset of it.
+`dataset.csv` holds two columns, `english` and `kiswahili`, in the project's
+standard format, so it does not carry a per-row link. To trace any pair back to
+tatoeba.org, paste the English sentence into the search box at
+<https://tatoeba.org/en/sentences/search?from=eng&to=swh&query=...> and look for
+the Kiswahili translation, or re-run the export steps below. Please keep this
+credit if you redistribute this data or a subset of it.
 
 **How the file was produced** (exports snapshot: 19 September 2026):
 

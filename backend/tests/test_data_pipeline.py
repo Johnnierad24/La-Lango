@@ -130,19 +130,35 @@ class TestCsvLoader:
         path.write_text(text, encoding="utf-8")
         return str(path)
 
-    def test_loads_pairs_from_default_columns(self, tmp_path):
+    def test_loads_two_column_file_with_no_arguments(self, tmp_path):
+        """The project format is header + "english,<target language>"."""
         path = self.write_csv(tmp_path, (
-            "id,source,target,source_corpus\n"
-            "1,Are you sure?,\"Je, una uhakika?\",Tatoeba\n"
-            "2,I love you.,Nakupenda.,Tatoeba\n"
+            "english,kiswahili\n"
+            "Are you sure?,\"Je, una uhakika?\"\n"
+            "I love you.,Nakupenda.\n"
         ))
         src, tgt = load_corpus_from_csv(path)
         assert src == ["Are you sure?", "I love you."]
         assert tgt == ["Je, una uhakika?", "Nakupenda."]
 
+    def test_works_for_any_target_language_column_name(self, tmp_path):
+        path = self.write_csv(tmp_path, "english,spanish\nHello,hola\n", name="es.csv")
+        src, tgt = load_corpus_from_csv(path)
+        assert src == ["Hello"]
+        assert tgt == ["hola"]
+
+    def test_extra_columns_are_ignored(self, tmp_path):
+        path = self.write_csv(tmp_path, (
+            "english,kiswahili,notes\n"
+            "Good morning,Morning?,translated by hand\n"
+        ))
+        src, tgt = load_corpus_from_csv(path)
+        assert src == ["Good morning"]
+        assert tgt == ["Morning?"]
+
     def test_handles_commas_and_quotes_inside_sentences(self, tmp_path):
         path = self.write_csv(tmp_path, (
-            "source,target\n"
+            "english,kiswahili\n"
             '"He said, ""come here"".","Alisema, ""njo hapa""."\n'
         ))
         src, tgt = load_corpus_from_csv(path)
@@ -151,7 +167,7 @@ class TestCsvLoader:
 
     def test_skips_rows_with_an_empty_cell(self, tmp_path):
         path = self.write_csv(tmp_path, (
-            "source,target\n"
+            "english,kiswahili\n"
             "How are you?,Uko wapi?\n"
             ",Nini?\n"
             "Good morning,,\n"
@@ -161,33 +177,39 @@ class TestCsvLoader:
         assert tgt == ["Uko wapi?"]
 
     def test_strips_surrounding_whitespace(self, tmp_path):
-        path = self.write_csv(tmp_path, "source,target\n  Hello  ,  Habari  \n")
+        path = self.write_csv(tmp_path, "english,kiswahili\n  Hello  ,  Habari  \n")
         src, tgt = load_corpus_from_csv(path)
         assert src == ["Hello"]
         assert tgt == ["Habari"]
 
     def test_custom_column_names(self, tmp_path):
-        path = self.write_csv(tmp_path, "english,kiswahili\nGood morning,Morning?\n")
-        src, tgt = load_corpus_from_csv(path, source_column="english", target_column="kiswahili")
+        path = self.write_csv(tmp_path, "english,spanish\nGood morning,Buenos dias\n")
+        src, tgt = load_corpus_from_csv(path, target_column="spanish")
         assert src == ["Good morning"]
-        assert tgt == ["Morning?"]
+        assert tgt == ["Buenos dias"]
 
     def test_tab_separated_file(self, tmp_path):
         path = self.write_csv(
             tmp_path,
-            "source\ttarget\nWhere are you?\tUko wapi?\n",
+            "english\tkiswahili\nWhere are you?\tUko wapi?\n",
             name="dataset.tsv",
         )
         src, tgt = load_corpus_from_csv(path, delimiter="\t")
         assert src == ["Where are you?"]
         assert tgt == ["Uko wapi?"]
 
-    def test_missing_column_raises_clear_error(self, tmp_path):
-        path = self.write_csv(tmp_path, "english,kiswahili\nHello,Habari\n")
+    def test_missing_source_column_raises_clear_error(self, tmp_path):
+        path = self.write_csv(tmp_path, "source,target\nHello,Habari\n")
         with pytest.raises(KeyError) as error:
             load_corpus_from_csv(path)
-        assert "source" in str(error.value)
         assert "english" in str(error.value)
+        assert "source, target" in str(error.value)
+
+    def test_single_column_file_raises_clear_error(self, tmp_path):
+        path = self.write_csv(tmp_path, "english\nHello\n")
+        with pytest.raises(KeyError) as error:
+            load_corpus_from_csv(path)
+        assert "target" in str(error.value)
 
     def test_missing_file_raises(self, tmp_path):
         with pytest.raises(FileNotFoundError):
@@ -195,9 +217,9 @@ class TestCsvLoader:
 
     def test_pairs_stay_aligned(self, tmp_path):
         rows = "".join(
-            f"{i},Source sentence {i},Target sentence {i}\n" for i in range(50)
+            f"Source sentence {i},Target sentence {i}\n" for i in range(50)
         )
-        path = self.write_csv(tmp_path, f"id,source,target\n{rows}")
+        path = self.write_csv(tmp_path, f"english,kiswahili\n{rows}")
         src, tgt = load_corpus_from_csv(path)
         assert len(src) == len(tgt) == 50
         for source, target in zip(src, tgt):

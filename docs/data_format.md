@@ -111,21 +111,24 @@ PYTHONPATH=backend python backend/scripts/preprocess.py \
 
 ### CSV rules
 
-1. **Header row required.** The script reads column names from it.
-2. **Source column must be named `source`, target column `target`** — or tell
-   the script which columns to use:
+1. **Header row required**, naming the two languages: `english,<target language>`
+   — for example `english,spanish` or `english,kiswahili`.
+2. **One pair per row**, English first, target language second. Rows with an
+   empty cell are skipped.
+3. **The script finds the columns itself.** It reads the `english` column and
+   uses the next column as the target language, so a two-column file needs no
+   extra flags. For anything else, name the columns:
    `--source-column english --target-column kiswahili`.
-3. **UTF-8 encoding.** Same as the text files.
-4. **One pair per row.** Rows with an empty cell are skipped.
-5. **Extra columns are fine** and ignored, so provenance columns such as
-   `id`, `source_corpus` or `source_url` are welcome.
+4. **UTF-8 encoding.** Same as the text files.
+5. **Extra columns are ignored**, so a file may carry provenance columns if you
+   want them.
 
 ### Example
 
 ```csv
-id,source,target,source_corpus,source_url
-1,Are you sure?,"Je, una uhakika?",Tatoeba,https://tatoeba.org/en/sentences/1326
-2,You wanted to tell me about freedom?,Ulitaka kunieleza kuhusu uhuru?,Tatoeba,https://tatoeba.org/en/sentences/1410
+english,kiswahili
+Are you sure?,"Je, una uhakika?"
+You wanted to tell me about freedom?,Ulitaka kunieleza kuhusu uhuru?
 ```
 
 Quote any cell that contains a comma, and use `--delimiter "\t"` for

@@ -79,13 +79,13 @@ in the section above).
 
 ### Columns
 
-| Column         | Meaning                                                            |
-|----------------|--------------------------------------------------------------------|
-| `id`           | Row number, 1–4,381                                                |
-| `source`       | English sentence                                                   |
-| `target`       | Kiswahili (Sanifu) sentence                                        |
-| `source_corpus`| Always `Tatoeba`                                                   |
-| `source_url`   | Link to the English sentence on tatoeba.org, where the pair can be checked |
+Two columns, in the order the project uses for every language dataset:
+English first, target language second.
+
+| Column      | Meaning                        |
+|-------------|--------------------------------|
+| `english`   | English sentence               |
+| `kiswahili` | Kiswahili (Sanifu) sentence    |
 
 ### How to load it
 
@@ -104,7 +104,8 @@ Expected result: "Loaded 4381 sentence pairs" then "Cleaned corpus: kept 4373
 pairs, skipped 8" — the 8 skipped pairs are longer than the default
 `--max-length 200` — split into 3,498 train / 437 val / 438 test pairs.
 
-If your own CSV uses different column names, point the script at them:
+No column flags are needed: the script reads `english` and then the next
+column. If a CSV uses other names, point the script at them:
 
 ```bash
 PYTHONPATH=backend python backend/scripts/preprocess.py \

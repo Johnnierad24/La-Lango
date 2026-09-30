@@ -17,8 +17,8 @@ import os
 
 def load_corpus_from_csv(
     csv_file,
-    source_column="source",
-    target_column="target",
+    source_column="english",
+    target_column=None,
     delimiter=",",
 ):
     """
@@ -28,13 +28,20 @@ def load_corpus_from_csv(
     sentence pair per row, so we read both languages from the same file instead
     of from two separate .src/.tgt files.
 
+    The project-wide format is a header row plus two columns: the source
+    language and the target language, named in the header, e.g.
+    "english,kiswahili" or "english,spanish". Because every language names its
+    target column differently, target_column defaults to the first column after
+    the source column, so a two-column file loads with no extra arguments.
+
     The file must have a header row. Rows where either language is empty are
     skipped, and the remaining pairs keep their original order.
 
     Args:
         csv_file (str): Path to the CSV file.
         source_column (str): Name of the column holding the source sentences.
-        target_column (str): Name of the column holding the target sentences.
+        target_column (str, optional): Name of the column holding the target
+            sentences. Defaults to the first column that is not source_column.
         delimiter (str): Column separator. Use "\\t" for tab-separated files.
 
     Returns:
@@ -42,7 +49,8 @@ def load_corpus_from_csv(
 
     Raises:
         FileNotFoundError: If the file does not exist.
-        KeyError: If the requested columns are not in the header.
+        KeyError: If the requested columns are not in the header, or if the
+            file has no second column to use as the target language.
 
     Example:
         >>> src, tgt = load_corpus_from_csv(
@@ -66,12 +74,31 @@ def load_corpus_from_csv(
         # DictReader puts the header in fieldnames; fail early with a clear
         # message rather than silently producing an empty corpus.
         available_columns = reader.fieldnames or []
-        for column in (source_column, target_column):
-            if column not in available_columns:
+
+        if source_column not in available_columns:
+            raise KeyError(
+                f"Column '{source_column}' not found in {csv_file}. "
+                f"Available columns: {', '.join(available_columns)}"
+            )
+
+        if target_column is None:
+            # Two-column convention: the target language is simply the other
+            # column, whatever it is named in the header.
+            other_columns = [
+                column for column in available_columns if column != source_column
+            ]
+            if not other_columns:
                 raise KeyError(
-                    f"Column '{column}' not found in {csv_file}. "
-                    f"Available columns: {', '.join(available_columns)}"
+                    f"{csv_file} only has a '{source_column}' column, so there is "
+                    f"no target language column. Expected a header like "
+                    f"'english,<target language>'."
                 )
+            target_column = other_columns[0]
+        elif target_column not in available_columns:
+            raise KeyError(
+                f"Column '{target_column}' not found in {csv_file}. "
+                f"Available columns: {', '.join(available_columns)}"
+            )
 
         for row in reader:
             source = (row.get(source_column) or "").strip()

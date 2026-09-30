@@ -17,11 +17,8 @@
   "dataset_pairs": 4381,
   "dataset_source": "Tatoeba English-Kiswahili sentence links",
   "dataset_columns": [
-    "id",
-    "source",
-    "target",
-    "source_corpus",
-    "source_url"
+    "english",
+    "kiswahili"
   ],
   "dataset_license": "CC BY 2.0 FR",
   "dataset_attribution": "ATTRIBUTION.md",

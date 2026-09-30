@@ -116,12 +116,13 @@ def main():
         help="Path to a CSV file containing both languages, one pair per row."
     )
     parser.add_argument(
-        "--source-column", default="source",
-        help="CSV column holding the source language. Default: source"
+        "--source-column", default="english",
+        help="CSV column holding the source language. Default: english"
     )
     parser.add_argument(
-        "--target-column", default="target",
-        help="CSV column holding the target language. Default: target"
+        "--target-column",
+        help="CSV column holding the target language, e.g. kiswahili. "
+             "Defaults to the first column after the source column."
     )
     parser.add_argument(
         "--delimiter", default=",",
@@ -162,7 +163,8 @@ def main():
         # Single CSV file → both languages come from the same table
         print("\nLoading CSV corpus...")
         print(f"  File: {args.csv_file}")
-        print(f"  Columns: {args.source_column} -> {args.target_column}")
+        print(f"  Columns: {args.source_column} -> "
+              f"{args.target_column or '(next column in the header)'}")
 
         source_sentences, target_sentences = load_corpus_from_csv(
             args.csv_file,
